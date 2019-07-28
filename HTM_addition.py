@@ -27,7 +27,7 @@ tries    = 50000 # to make sure we've given it enough examples. Mostly works wit
 # for converting numbers into SDRs as specified above
 numEncoder = common.ScalarEncoderGenerator(numMin,numMax,numSize,numSpars)
 # used to predict addition
-tm = TM(columnDimensions = (numSize*3,),
+tm = TM(columnDimensions = (numSize*3,), # 3 numbers: encodes a + b = c via [a,b,blank] then [blank,blank,c]
       cellsPerColumn=1,
       initialPermanence=0.5,
       connectedPermanence=0.5,
