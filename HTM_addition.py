@@ -26,7 +26,6 @@ tries    = 50000 # to make sure we've given it enough examples. Mostly works wit
 
 # for converting numbers into SDRs as specified above
 numEncoder = common.ScalarEncoderGenerator(numMin,numMax,numSize,numSpars)
-
 # used to predict addition
 tm = TM(columnDimensions = (numSize*3,),
       cellsPerColumn=1,
@@ -38,10 +37,8 @@ tm = TM(columnDimensions = (numSize*3,),
       permanenceDecrement=0.0,
       activationThreshold=8,
       )  
-
 # null SDR for padding
 emptyBits = SDR(numSize)
-
 # we store predictions in this
 results = []
 
@@ -51,29 +48,24 @@ for x in range (0,tries):
     a = random.randint(0,numMax/2)
     b = random.randint(0,numMax/2)
     c = a + b 
-    print(a, "+", b, "=", c)
-    
+    print(a, "+", b, "=", c)    
     # SDR for each number
     aBits = numEncoder.encode(a)
     bBits = numEncoder.encode(b)
-    cBits = numEncoder.encode(c)
-    
+    cBits = numEncoder.encode(c)    
     # combine SDRs 
     # question only shows a and b
     # answer only shows c
     width, question = common.combineBits([aBits, bBits, emptyBits])
-    width, answer   = common.combineBits([emptyBits,emptyBits, cBits])
-    
+    width, answer   = common.combineBits([emptyBits,emptyBits, cBits])    
     # TM predicts answer given question
-    prediction = common.promptTM(tm, question, answer, True)
-    
+    prediction = common.promptTM(tm, question, answer, True)    
     #if we've done half the examples, start recording answers
     if x > tries/2:
         results.append((c, prediction))
-
+      
 # Converts SDRs back into numbers
 numDecoder = common.trainNumDecoder(numEncoder, numMin, numMax, 0)
-
 # to count addition errors
 errors = 0
 err_list =[]
@@ -82,27 +74,22 @@ err_list =[]
 for result in results:
     # ground truth
     val = result[0]     
-
     # bit array of our prediction
     raw_prediction = result[1].coordinates[0]
 
     if len(raw_prediction) > 0:
         # make blank SDR big enough for one number
-        prediction = SDR(numSize)
-        
+        prediction = SDR(numSize)        
         # remove prompt blank space from answer
         for value in raw_prediction:
-            prediction.dense[value-numSize*2] = 1
-            
+            prediction.dense[value-numSize*2] = 1            
         # tell SDR we updated its values 
         # (unsure why this works, found in sp tutorial)
-        prediction.dense = prediction.dense 
-        
+        prediction.dense = prediction.dense         
         # convert prediction into a number!
         prediction = common.decode(numDecoder,prediction)
     else:
         prediction = None # no prediction
-
     # is prediction correct?
     agreement = (val == prediction)
     print("truth:", val, "prediction:", prediction, "agree?", agreement)
